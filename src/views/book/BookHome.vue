@@ -12,11 +12,24 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(book, index) in books" :key="index">
+        <tr v-for="(book, index) in books" :key="book.id">
           <td>{{ index + 1 }}</td>
           <td>{{ book.title }}</td>
           <td>{{ book.authors }}</td>
-          <td>{{ book.average_rating }}</td>
+          <td>
+            <img
+              src="../../assets/star.svg"
+              v-for="(star, index) in Math.floor(book.average_rating)"
+              :key="randomId() + index"
+            />
+            <img
+              src="../../assets/star_gray.svg"
+              v-for="(star, index) in 5 - Math.floor(book.average_rating)"
+              :key="randomId() + index"
+            />
+
+            ({{ parseFloat(book.average_rating).toFixed(2) }})
+          </td>
           <td><router-link :to="`/book/${book.id}`">Details</router-link></td>
         </tr>
       </tbody>
@@ -25,27 +38,29 @@
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   data: () => ({
     books: [],
     reviews: [],
   }),
   mounted() {
-    axios
-      .get('http://bukubagus.test/v1/book', {
+    this.$axios
+      .get('v1/book', {
         params: {
           token: localStorage.getItem('token'),
         },
       })
       .then((res) => {
         this.books = res.data;
-        console.log(res.data);
       })
       .catch((err) => {
         console.log(err);
       });
+  },
+  methods: {
+    randomId() {
+      return this.$nanoid();
+    },
   },
 };
 </script>

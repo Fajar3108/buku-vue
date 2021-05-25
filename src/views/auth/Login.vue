@@ -7,7 +7,7 @@
     <ul class="errors" v-if="Object.keys(errors).length > 0">
       <li v-for="(error, index) in errors" :key="index" class="error">{{ error[0] }}</li>
     </ul>
-    <form action="" class="login-form">
+    <form action="" class="login-form" @submit.prevent="login()">
       <div class="form-group">
         <label for="username">Username</label>
         <input v-model="username" type="text" id="username" class="form-control" />
@@ -17,14 +17,12 @@
         <input v-model="password" type="password" id="password" class="form-control" />
       </div>
 
-      <Button @click="login()">Submit</Button>
+      <button type="submit" class="btn">Submit</button>
     </form>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   data: () => ({
     username: '',
@@ -38,8 +36,8 @@ export default {
       formData.append('username', this.username);
       formData.append('password', this.password);
 
-      axios
-        .post('http://bukubagus.test/v1/auth/login', formData)
+      this.$axios
+        .post('/v1/auth/login', formData)
         .then((res) => {
           console.log(res.data.token);
           const { token } = res.data;

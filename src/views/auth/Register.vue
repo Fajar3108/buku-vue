@@ -31,8 +31,6 @@
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   data: () => ({
     first_name: '',
@@ -50,8 +48,8 @@ export default {
       formData.append('username', this.username);
       formData.append('password', this.password);
 
-      axios
-        .post('http://bukubagus.test/v1/auth/register', formData)
+      this.$axios
+        .post('/v1/auth/register', formData)
         .then((response) => {
           console.log(response);
           this.is_success = true;

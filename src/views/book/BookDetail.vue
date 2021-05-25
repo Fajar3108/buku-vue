@@ -21,14 +21,20 @@
         <td>{{ book.authors }}</td>
       </tr>
       <tr>
-        <th>Average Rating ({{ book.total_rating }})</th>
+        <th>Average Rating</th>
         <td>
           <img
             src="../../assets/star.svg"
             v-for="(star, index) in Math.floor(book.average_rating)"
-            :key="index"
+            :key="randomId() + index"
           />
-          ({{ book.average_rating }})
+          <img
+            src="../../assets/star_gray.svg"
+            v-for="(star, index) in 5 - Math.floor(book.average_rating)"
+            :key="randomId() + index"
+          />
+
+          ({{ book.average_rating.toFixed(2) }})
         </td>
       </tr>
       <tr>
@@ -36,33 +42,76 @@
         <td>{{ book.total_reviews }}</td>
       </tr>
       <tr>
+        <th>Total Rating</th>
+        <td>{{ book.total_rating }}</td>
+      </tr>
+      <tr>
         <th>Star</th>
         <td>
           <ul>
             <li>
               <img src="../../assets/star.svg" />
-              {{ book.ratings.star_1 }}%
+              {{ (book.ratings.star_1 || 0.0).toFixed(2) }}%
             </li>
             <li>
-              <img src="../../assets/star.svg" v-for="(star, index) in 2" :key="index" />
-              {{ book.ratings.star_2 }}%
+              <img
+                src="../../assets/star.svg"
+                v-for="(star, index) in 2"
+                :key="randomId() + index"
+              />
+              {{ (book.ratings.star_2 || 0.0).toFixed(2) }}%
             </li>
             <li>
-              <img src="../../assets/star.svg" v-for="(star, index) in 3" :key="index" />
-              {{ book.ratings.star_3 }}%
+              <img
+                src="../../assets/star.svg"
+                v-for="(star, index) in 3"
+                :key="randomId() + index"
+              />
+              {{ (book.ratings.star_3 || 0.0).toFixed(2) }}%
             </li>
             <li>
-              <img src="../../assets/star.svg" v-for="(star, index) in 4" :key="index" />
-              {{ book.ratings.star_4 }}%
+              <img
+                src="../../assets/star.svg"
+                v-for="(star, index) in 4"
+                :key="randomId() + index"
+              />
+              {{ (book.ratings.star_4 || 0).toFixed(2) }}%
             </li>
             <li>
-              <img src="../../assets/star.svg" v-for="(star, index) in 5" :key="index" />
-              {{ book.ratings.star_5 }}%
+              <img
+                src="../../assets/star.svg"
+                v-for="(star, index) in 5"
+                :key="randomId() + index"
+              />
+              {{ (book.ratings.star_5 || 0.0).toFixed(2) }}%
             </li>
           </ul>
         </td>
       </tr>
     </table>
+
+    <div class="add-rating">
+      <div class="stars" @mouseout="leaveStar()">
+        <div class="star" @mouseout="leaveStar()">
+          <img
+            src="../../assets/star.svg"
+            v-for="(star, index) in activeStar"
+            :key="randomId() + index"
+            @mouseover="hoverStar(index)"
+            @mouseout="leaveStar()"
+            @click="submitRating(index)"
+            class="active"
+          />
+          <img
+            src="../../assets/star_gray.svg"
+            v-for="(star, index) in 5 - activeStar"
+            :key="randomId() + index"
+            @mouseout="leaveStar()"
+            @mouseover="hoverStar(index)"
+          />
+        </div>
+      </div>
+    </div>
 
     <div class="reviews">
       <h2>Reviews</h2>
@@ -75,6 +124,9 @@
             placeholder="Put your review here"
             v-model="reviewInput"
           ></textarea>
+          <div class="error-message" v-if="errors.review">
+            <i>* {{ errors.review[0] }}</i>
+          </div>
           <Button @click="submitReview()">Send</Button>
         </div>
       </form>
@@ -86,17 +138,18 @@
 </template>
 
 <script>
-import axios from 'axios';
 import Button from '@/components/Button.vue';
 
 export default {
   data: () => ({
     book: {
       ratings: {},
-      average_rating: 0,
+      average_rating: 0.0,
     },
     reviewInput: '',
-    basePath: 'http://bukubagus.test/v1/book',
+    basePath: 'v1/book',
+    errors: [],
+    activeStar: 0,
   }),
   components: {
     Button,
@@ -107,7 +160,7 @@ export default {
   methods: {
     getBook() {
       const id = this.$route.params.book_id;
-      axios
+      this.$axios
         .get(`${this.basePath}/${id}`, {
           params: {
             token: localStorage.getItem('token'),
@@ -122,17 +175,44 @@ export default {
       const formData = new FormData();
       const id = this.$route.params.book_id;
       formData.append('review', this.reviewInput);
-      axios
+      this.$axios
         .post(`${this.basePath}/${id}/review`, formData, {
           params: {
             token: localStorage.getItem('token'),
           },
         })
-        .then((res) => {
-          console.log(res);
+        .then(() => {
           this.getBook();
         })
-        .catch((err) => console.log(err.response.data.errors));
+        .catch((err) => {
+          this.errors = err.response.data.errors;
+        });
+    },
+    randomId() {
+      return this.$nanoid();
+    },
+    hoverStar(index) {
+      this.activeStar = index + 1;
+    },
+    leaveStar() {
+      this.activeStar = 0;
+    },
+    submitRating(index) {
+      const formData = new FormData();
+      formData.append('rating', index + 1);
+      const id = this.$route.params.book_id;
+      this.$axios
+        .post(`${this.basePath}/${id}/rating`, formData, {
+          params: {
+            token: localStorage.getItem('token'),
+          },
+        })
+        .then(() => {
+          this.getBook();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
   },
 };
@@ -165,5 +245,23 @@ ul li {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   border-radius: 0.5rem;
   border: 1px solid #000;
+}
+.error-message {
+  padding: 1rem 0;
+  color: #f00;
+  font-size: 0.875rem;
+}
+.add-rating {
+  margin-top: 1rem;
+}
+.add-rating .stars {
+  display: flex;
+  width: 100%;
+  padding: 1rem 0;
+  justify-content: center;
+}
+.add-rating .stars .star img {
+  width: 100px;
+  cursor: pointer;
 }
 </style>
