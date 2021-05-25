@@ -18,5 +18,18 @@
 }
 input {
   background-color: #fff;
+  color: #000;
+}
+table {
+  width: 100%;
+  text-align: left;
+}
+table thead {
+  background-color: #eee;
+}
+table td,
+table th {
+  padding: 0.5rem;
+  border: 1px solid #aaa;
 }
 </style>
