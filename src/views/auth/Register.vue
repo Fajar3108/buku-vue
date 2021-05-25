@@ -66,36 +66,3 @@ export default {
   },
 };
 </script>
-
-<style>
-h1 {
-  margin-bottom: 1rem;
-}
-.form-group {
-  margin-bottom: 1rem;
-}
-.register-form .form-control {
-  padding: 0.3rem 0.5rem;
-  width: 100%;
-  border: 1px solid #ddd;
-  border-radius: 0.3rem;
-}
-
-.errors,
-.alert-success {
-  padding: 1rem;
-  color: #fff;
-  margin-bottom: 1.5rem;
-  list-style: none;
-}
-.errors {
-  background-color: red;
-}
-.error {
-  margin-bottom: 0.5rem;
-}
-
-.alert-success {
-  background: green;
-}
-</style>
